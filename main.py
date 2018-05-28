@@ -1,12 +1,27 @@
 # #!/usr/bin/python3
+"""Touchscreen game controller for official Raspberry Pi 7" touchscreen.
+
+Takes in touch events from /dev/input/eventX where X is the index of
+the touchscreen. Translates touch events into virtual keyboard presses.
+"""
 import struct
 import time
 import sys
 import keyboard
 
+__author__ = "Michael Huyler"
+__copyright__ = "Copyright 2018"
+__credits__ = ["https://stackoverflow.com/a/16682549/7789614"]
+__license__ = ""
+__version__ = "1"
+__maintainer__ = "Michael Huyler"
+__email__ = "michaelhuyler2020@u.northwestern.edu"
+__status__ = "Development"
+
 
 def translate_press_to_key():
-    print (x, y)
+    """Check x and y of a touch event, and type the corresponding key."""
+    # print (x, y)
     if x > 600:
         if y > 100 and y < 300:
             keyboard.press_and_release('a')
