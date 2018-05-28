@@ -3,6 +3,11 @@
 
 Takes in touch events from /dev/input/eventX where X is the index of
 the touchscreen. Translates touch events into virtual keyboard presses.
+
+TODO: Draw bounds on screen (in assembly?).
+      Determine if keys are correct.
+      Determine how to handle continuous pressure.
+      Determine how to handle analog input (joysticks).
 """
 import struct
 import time
@@ -22,6 +27,9 @@ __status__ = "Development"
 def translate_press_to_key():
     """Check x and y of a touch event, and type the corresponding key."""
     # print (x, y)
+    # A: 'z', B: 'x', X: 'a', Y: 's'
+    # L: 'c', R: 'v', ZL: 'd', ZR: 'f'
+    # Select: 'left shift', Start: 'enter', Hotkey: 'TBD'
     if x > 600:
         if y > 100 and y < 300:
             keyboard.press_and_release('a')
