@@ -13,10 +13,11 @@ import struct
 import time
 import sys
 import keyboard
-import pygame
 import signal
 import copy
 import math
+import screentest
+import common
 
 __author__ = "Michael Huyler"
 __copyright__ = "Copyright 2018"
@@ -40,58 +41,18 @@ class Event:
     ABS_MT_POSITION_Y = 54
 
 
-class Button:
-    # button types
-    RECT = 0
-    CIRC = 1
-    ANALOG = 2
-
-
-class Ind:
-    # Index references
-    B_TYPE = 0
-    X = 1
-    Y = 2
-    WIDTH = 3
-    HEIGHT = 4
-    RAD = 3
-
-
 # screen size constants
 # top-left = 0, 0
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 480
 
-# infile_path = "input"
-infile_path = "/dev/input/event2"
-
-"""List of buttons, where
-    key = button name
-    value = (RECT, x, y, w, h) OR (CIRC, x, y, radius)
-"""
-buttons = {
-    # Main
-    "a": (Button.CIRC, 726, 296, 20),
-    "b": (Button.CIRC, 683, 341, 20),
-    "x": (Button.CIRC, 683, 254, 20),
-    "y": (Button.CIRC, 641, 296, 20),
-    # D-Pad
-    # "up arrow": (Button.RECT, ),
-    # "down arrow": (Button.RECT, ),
-    # "left arrow": (Button.RECT, ),
-    # "right arrow": (Button.RECT, ),
-    # Hotkey
-    # "esc": (Button.RECT, ),
-    # Menu
-    # "enter": (Button.RECT, ),
-    # "left shift": (Button.RECT, )  # Potentially needs 'right shift'
-}
-
 """A dictionary of touch events. Format:
-    id: [x, y, slot, active?, BTN]
+    id: [active?, x, y, slot, BTN]
 """
 touches = {}
 
+# FIFO for touch events
+infile_path = "/dev/input/event2"
 in_file = None
 
 
@@ -107,24 +68,24 @@ def translate_press_to_key():
 
     # Release inactive touches
     for key in touches:
-        if not touches[key][3]:
-            if touches[key][4] is not None:
-                keyboard.release(touches[key][4])
+        if not touches[key][common.ID.ACTIVE]:
+            if touches[key][common.ID.BTN] is not None:
+                keyboard.release(touches[key][common.ID.BTN])
 
     # Purge inactive touches from dictionary
-    temp_touches = {key: value[:] for key, value in touches.items() if touches[key][3]}
+    temp_touches = {key: value[:] for key, value in touches.items() if touches[key][common.ID.ACTIVE]}
     touches = {key: value[:] for key, value in temp_touches.items()}
 
     # Activate new touches
     for key in touches:
-        if touches[key][4] is None:
-            touches[key][4] = within_button(touches[key][0], touches[key][1])
-        if touches[key][4] is not None:
-            if not keyboard.is_pressed(touches[key][4]):
-                keyboard.press(touches[key][4])
+        if touches[key][common.ID.BTN] is None:
+            touches[key][common.ID.BTN] = within_button(touches[key][common.ID.X], touches[key][common.ID.Y])
+        if touches[key][common.ID.BTN] is not None:
+            if not keyboard.is_pressed(touches[key][common.ID.BTN]):
+                keyboard.press(touches[key][common.ID.BTN])
 
     if touches:
-        print("ID: [  X,  Y,  S, ACTV]")
+        print("ID: [ACTV,  X,  Y,  S, BTN]")
     for key in touches:
         print(str(key) + ": " + str(touches[key]), end="")
     if touches:
@@ -134,42 +95,30 @@ def translate_press_to_key():
 def within_button(x, y):
     """Given a point on the screen, returns the key corresponding to the button
     being pressed, or None if it does not fall within a button."""
-    for key in buttons:
-        if buttons[key][Ind.B_TYPE] == Button.CIRC:
-            if math.sqrt(((buttons[key][Ind.X] - x) ** 2) + ((buttons[key][Ind.Y] - y) ** 2)) <= buttons[key][Ind.RAD]:
+    for key in common.buttons:
+        if common.buttons[key][common.ID.B_TYPE] == common.Button.CIRC:
+            # Determine if a touch is within circular bounds
+            if math.sqrt(((common.buttons[key][common.ID.X] - x) ** 2)
+                         + ((common.buttons[key][common.ID.Y] - y) ** 2)) \
+                         <= common.buttons[key][common.ID.RAD]:
                 return key
-        elif buttons[key][Ind.B_TYPE] == Button.RECT:
-            if (buttons[key][Ind.X] <= x <= (buttons[key][Ind.X] + buttons[key][Ind.WIDTH])) \
-               and (buttons[key][Ind.Y] <= y <= (buttons[key][Ind.Y] + buttons[key][Ind.HEIGHT])):
+        elif common.buttons[key][common.ID.B_TYPE] == common.Button.RECT:
+            # Determine if a touch is within rectangular bounds
+            if (common.buttons[key][common.ID.X]
+               <= x <=
+               (common.buttons[key][common.ID.X] + common.buttons[key][common.ID.WIDTH])) \
+               and (common.buttons[key][common.ID.Y]
+               <= y <=
+               (common.buttons[key][common.ID.Y] + common.buttons[key][common.ID.HEIGHT])):
                 return key
-        elif buttons[key][Ind.B_TYPE] == Button.ANALOG:
+        elif common.buttons[key][common.ID.B_TYPE] == common.Button.ANALOG:
             # TODO This will be for the analog sticks
             pass
     return None
 
 
 def main():
-    # Set up Pygame for testing button locations
-    global SCREEN_WIDTH, SCREEN_HEIGHT
-    pygame.init()
-    myfont = pygame.font.SysFont("monospace", 40)
-    pygame.mouse.set_visible(False)
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    screen.fill((0, 0, 127))
-    pygame.draw.circle(screen, (0, 255, 0), (buttons["a"][Ind.X], buttons["a"][Ind.Y]), 20)
-    label = myfont.render("A", 1, (255, 0, 255))
-    screen.blit(label, (buttons["a"][Ind.X] - 12, buttons["a"][Ind.Y] - 20))
-    pygame.draw.circle(screen, (255, 0, 0), (buttons["b"][Ind.X], buttons["b"][Ind.Y]), 20)
-    label = myfont.render("B", 1, (0, 255, 255))
-    screen.blit(label, (buttons["b"][Ind.X] - 12, buttons["b"][Ind.Y] - 20))
-    pygame.draw.circle(screen, (0, 0, 255), (buttons["x"][Ind.X], buttons["x"][Ind.Y]), 20)
-    label = myfont.render("X", 1, (255, 255, 0))
-    screen.blit(label, (buttons["x"][Ind.X] - 12, buttons["x"][Ind.Y] - 20))
-    pygame.draw.circle(screen, (255, 255, 0), (buttons["y"][Ind.X], buttons["y"][Ind.Y]), 20)
-    label = myfont.render("Y", 1, (0, 0, 255))
-    screen.blit(label, (buttons["y"][Ind.X] - 12, buttons["y"][Ind.Y] - 20))
-    pygame.display.update()
-
+    screentest.init_pygame()
     # Touch event variables
     global touches
     slot = -1
@@ -182,6 +131,7 @@ def main():
     event = in_file.read(Event.EVENT_SIZE)
 
     while event:
+        screentest.update_screen()
         (tv_sec, tv_usec, type, code, value) = struct.unpack(Event.FORMAT, event)
 
         if type != 0 or code != 0 or value != 0:
@@ -190,28 +140,34 @@ def main():
             elif code == Event.ABS_MT_TRACKING_ID:
                 id = value
                 if id == Event.MIN_ID:  # This is a release, so set id to min id and remove it
+                    # Remove by slot
                     for key in touches:
-                        if id == Event.MIN_ID:
+                        if touches[key][common.ID.SLOT] == slot:
                             id = key
-                        elif key < id:
-                            id = key
+                    # Remove by tracking id if that fails
+                    if id == Event.MIN_ID:
+                        for key in touches:
+                            if id == Event.MIN_ID:
+                                id = key
+                            elif key < id:
+                                id = key
                     print("Remove event", id)
-                    touches[id][3] = False
+                    touches[id][common.ID.ACTIVE] = False
                     x = -1
                     y = -1
                 elif id in touches:  # This is a drag event, so update x | y
                     print("Modify event", id)
-                    x = touches[id][0]
-                    y = touches[id][1]
+                    x = touches[id][common.ID.X]
+                    y = touches[id][common.ID.Y]
                 else:  # This is a new touch, so add it and set it as active
                     print("Create event", id)
-                    touches[id] = [-1, -1, slot, True, None]
+                    touches[id] = [True, -1, -1, slot, None]
             elif code == Event.ABS_MT_POSITION_X:
                 x = value
-                touches[id][0] = x
+                touches[id][common.ID.X] = x
             elif code == Event.ABS_MT_POSITION_Y:
                 y = value
-                touches[id][1] = y
+                touches[id][common.ID.Y] = y
 
         else:  # Events with code, type AND value == 0 are "separator" events
             x = -1
