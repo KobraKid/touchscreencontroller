@@ -78,8 +78,9 @@ def translate_press_to_key():
 
     # Activate new touches
     for key in touches:
-        if touches[key][common.ID.BTN] is None:
-            touches[key][common.ID.BTN] = within_button(touches[key][common.ID.X], touches[key][common.ID.Y])
+        # if touches[key][common.ID.BTN] is None:
+        # Update all touches (to include sliding off a button)
+        touches[key][common.ID.BTN] = within_button(touches[key][common.ID.X], touches[key][common.ID.Y])
         if touches[key][common.ID.BTN] is not None:
             if not keyboard.is_pressed(touches[key][common.ID.BTN]):
                 keyboard.press(touches[key][common.ID.BTN])
@@ -131,7 +132,7 @@ def main():
     event = in_file.read(Event.EVENT_SIZE)
 
     while event:
-        screentest.update_screen()
+        # screentest.update_screen()
         (tv_sec, tv_usec, type, code, value) = struct.unpack(Event.FORMAT, event)
 
         if type != 0 or code != 0 or value != 0:
@@ -164,10 +165,12 @@ def main():
                     touches[id] = [True, -1, -1, slot, None]
             elif code == Event.ABS_MT_POSITION_X:
                 x = value
-                touches[id][common.ID.X] = x
+                if id in touches:
+                    touches[id][common.ID.X] = x
             elif code == Event.ABS_MT_POSITION_Y:
                 y = value
-                touches[id][common.ID.Y] = y
+                if id in touches:
+                    touches[id][common.ID.Y] = y
 
         else:  # Events with code, type AND value == 0 are "separator" events
             x = -1

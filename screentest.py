@@ -65,9 +65,9 @@ def init_pygame():
     label = myfont.render("⌂", 1, (0, 0, 0))
     screen.blit(label, (common.buttons["esc"][common.ID.X] + 13, common.buttons["esc"][common.ID.Y] - 4))
     # Keypress label
-    pygame.draw.circle(screen, (255, 255, 255), (int(SCREEN_WIDTH / 2), int(SCREEN_HEIGHT / 2)), 20)
-    key_label = myfont.render("X", 1, (0, 0, 0))
-    screen.blit(key_label, (int(SCREEN_WIDTH / 2) - 12, int(SCREEN_HEIGHT / 2) - 20))
+    # pygame.draw.circle(screen, (255, 255, 255), (int(SCREEN_WIDTH / 2), int(SCREEN_HEIGHT / 2)), 20)
+    # key_label = myfont.render("X", 1, (0, 0, 0))
+    # screen.blit(key_label, (int(SCREEN_WIDTH / 2) - 12, int(SCREEN_HEIGHT / 2) - 20))
     pygame.display.update()
 
 
