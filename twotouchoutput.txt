@@ -1,17 +1,18 @@
-Event: time 1527639960.914003, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value 12
-Event: time 1527639960.914003, type 3 (EV_ABS), code 53 (ABS_MT_POSITION_X), value 526
-Event: time 1527639960.914003, type 3 (EV_ABS), code 54 (ABS_MT_POSITION_Y), value 164
-Event: time 1527639960.914003, type 3 (EV_ABS), code 47 (ABS_MT_SLOT), value 1
-Event: time 1527639960.914003, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value 13
-Event: time 1527639960.914003, type 3 (EV_ABS), code 53 (ABS_MT_POSITION_X), value 308
-Event: time 1527639960.914003, type 3 (EV_ABS), code 54 (ABS_MT_POSITION_Y), value 207
-Event: time 1527639960.914003, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 1
-Event: time 1527639960.914003, type 3 (EV_ABS), code 0 (ABS_X), value 526
-Event: time 1527639960.914003, type 3 (EV_ABS), code 1 (ABS_Y), value 164
-Event: time 1527639960.914003, -------------- SYN_REPORT ------------
-Event: time 1527639960.953989, type 3 (EV_ABS), code 47 (ABS_MT_SLOT), value 0
-Event: time 1527639960.953989, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value -1
-Event: time 1527639960.953989, type 3 (EV_ABS), code 47 (ABS_MT_SLOT), value 1
-Event: time 1527639960.953989, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value -1
-Event: time 1527639960.953989, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 0
-Event: time 1527639960.953989, -------------- SYN_REPORT ------------
+Event: time 1527643165.133998, type 3 (EV_ABS), code 47 (ABS_MT_SLOT), value 0
+Event: time 1527643165.133998, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value 16
+Event: time 1527643165.133998, type 3 (EV_ABS), code 53 (ABS_MT_POSITION_X), value 375
+Event: time 1527643165.133998, type 3 (EV_ABS), code 54 (ABS_MT_POSITION_Y), value 119
+Event: time 1527643165.133998, type 3 (EV_ABS), code 47 (ABS_MT_SLOT), value 1
+Event: time 1527643165.133998, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value 17
+Event: time 1527643165.133998, type 3 (EV_ABS), code 53 (ABS_MT_POSITION_X), value 330
+Event: time 1527643165.133998, type 3 (EV_ABS), code 54 (ABS_MT_POSITION_Y), value 305
+Event: time 1527643165.133998, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 1
+Event: time 1527643165.133998, type 3 (EV_ABS), code 0 (ABS_X), value 375
+Event: time 1527643165.133998, type 3 (EV_ABS), code 1 (ABS_Y), value 119
+Event: time 1527643165.133998, -------------- SYN_REPORT ------------
+Event: time 1527643165.293977, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value -1
+Event: time 1527643165.293977, -------------- SYN_REPORT ------------
+Event: time 1527643165.333975, type 3 (EV_ABS), code 47 (ABS_MT_SLOT), value 0
+Event: time 1527643165.333975, type 3 (EV_ABS), code 57 (ABS_MT_TRACKING_ID), value -1
+Event: time 1527643165.333975, type 1 (EV_KEY), code 330 (BTN_TOUCH), value 0
+Event: time 1527643165.333975, -------------- SYN_REPORT ------------

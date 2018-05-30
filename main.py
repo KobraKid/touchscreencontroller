@@ -15,6 +15,7 @@ import sys
 import keyboard
 import pygame
 import signal
+import copy
 
 __author__ = "Michael Huyler"
 __copyright__ = "Copyright 2018"
@@ -26,6 +27,25 @@ __email__ = "michaelhuyler2020@u.northwestern.edu"
 __status__ = "Development"
 
 
+class Event:
+    # Event constants
+    MIN_ID = 4294967295
+    # long int, long int, unsigned short, unsigned short, unsigned int
+    FORMAT = 'llHHI'
+    EVENT_SIZE = struct.calcsize(FORMAT)
+    ABS_MT_SLOT = 47
+    ABS_MT_TRACKING_ID = 57
+    ABS_MT_POSITION_X = 53
+    ABS_MT_POSITION_Y = 54
+
+
+class Button:
+    # button types
+    RECT = 0
+    CIRC = 1
+    ANALOG = 2
+
+
 # screen size constants
 # top-left = 0, 0
 WIDTH = 800
@@ -33,18 +53,6 @@ HEIGHT = 480
 
 # infile_path = "input"
 infile_path = "/dev/input/event2"
-
-# long int, long int, unsigned short, unsigned short, unsigned int
-FORMAT = 'llHHI'
-EVENT_SIZE = struct.calcsize(FORMAT)
-
-# button types
-RECT = 0
-CIRC = 1
-ANALOG = 2
-
-# other globals
-TOUCH = False
 
 """List of buttons, where
     key = button name
@@ -77,35 +85,51 @@ TOUCH = False
 """
 buttons = {
     # Main
-    "a": (CIRC, 750, 240, 50),
-    "b": (CIRC, 750, 240, 50),
-    "x": (CIRC, 750, 240, 50),
-    "y": (CIRC, 750, 240, 50),
+    "a": (Button.CIRC, 750, 240, 50),
+    "b": (Button.CIRC, 750, 240, 50),
+    "x": (Button.CIRC, 750, 240, 50),
+    "y": (Button.CIRC, 750, 240, 50),
     # D-Pad
-    "up": (RECT, 750, 240, 32),
-    "down": (RECT, 750, 240, 32),
-    "left": (RECT, 750, 240, 32),
-    "right": (RECT, 750, 240, 32),
+    "up": (Button.RECT, 750, 240, 32),
+    "down": (Button.RECT, 750, 240, 32),
+    "left": (Button.RECT, 750, 240, 32),
+    "right": (Button.RECT, 750, 240, 32),
     # Hotkey
-    "home": (RECT, 750, 240, 50),
+    "home": (Button.RECT, 750, 240, 50),
     # Menu
-    "start": (RECT, 750, 240, 50),
-    "select": (RECT, 750, 240, 50)
+    "start": (Button.RECT, 750, 240, 50),
+    "select": (Button.RECT, 750, 240, 50)
 }
+
+"""A dictionary of touch events. Format:
+    id: [x, y, slot, active?]
+"""
+touches = {}
+
+in_file = None
 
 
 def on_exit(signum, frame):
-    in_file.close()
+    if in_file:
+        in_file.close()
     sys.exit(0)
 
 
 def translate_press_to_key():
-    """Check x and y of a touch event, and type the corresponding key."""
-    # print (x, y)
+    """Cycle through touch events, and type the corresponding key."""
     # A: 'z', B: 'x', X: 'a', Y: 's'
     # L: 'c', R: 'v', ZL: 'd', ZR: 'f'
     # Select: 'left shift', Start: 'enter', Hotkey: 'escape'
-    # keyboard.press_and_release('z')
+    # temp_touches = {key: value[:] for key, value in touches.items()}
+    # for key in touches:  # Remove inactive touches
+    #     if not touches[key][3]:  # Touch is no longer active
+    #         keyboard.release('z')
+    #         del temp_touches[key]
+    # touches = {key: value[:] for key, value in temp_touches.items()}
+    # for key in touches:  # Maintian touches
+    #     if not keyboard.is_pressed('z'):
+    #         keyboard.press('z')
+    print(str(touches))
 
 
 def within_button(radius, x, y):
@@ -114,36 +138,54 @@ def within_button(radius, x, y):
 
 def main():
     # coordinate variables
+    slot = -1
+    id = -1
     x = -1
     y = -1
 
     # open file in binary mode
     in_file = open(infile_path, "rb")
-    event = in_file.read(EVENT_SIZE)
+    event = in_file.read(Event.EVENT_SIZE)
 
     while event:
-        (tv_sec, tv_usec, type, code, value) = struct.unpack(FORMAT, event)
+        (tv_sec, tv_usec, type, code, value) = struct.unpack(Event.FORMAT, event)
 
-        # Triggered every downpress and every uppress, so toggle press bool
-        if type == 1:
-            if code == 330:
-                TOUCH = !TOUCH
-        elif type != 0 or code != 0 or value != 0:
-            if code == 0:
+        if type != 0 or code != 0 or value != 0:
+            if code == Event.ABS_MT_SLOT:
+                slot = value
+            elif code == Event.ABS_MT_TRACKING_ID:
+                id = value
+                if id == Event.MIN_ID:  # This is a release, so set id to min id and remove it
+                    for key in touches:
+                        if id == Event.MIN_ID:
+                            id = key
+                        elif key < id:
+                            id = key
+                    print("Remove event", id)
+                    touches[id][3] = False
+                    x = -1
+                    y = -1
+                elif id in touches:  # This is a drag event, so update x | y
+                    print("Modify event", id)
+                    x = touches[id][0]
+                    y = touches[id][1]
+                else:  # This is a new touch, so add it and set it as active
+                    print("Create event", id)
+                    touches[id] = [-1, -1, -1, True]
+            elif code == Event.ABS_MT_POSITION_X:
                 x = value
-            elif code == 1:
+            elif code == Event.ABS_MT_POSITION_Y:
                 y = value
-            else:
-                x = -1
-                y = -1
+
         else:  # Events with code, type AND value == 0 are "separator" events
             x = -1
             y = -1
 
-        if x != -1 and y != -1:
-            translate_press_to_key()
+        # Perform button presses for each button being pressed
+        translate_press_to_key()
 
-        event = in_file.read(EVENT_SIZE)
+        event = in_file.read(Event.EVENT_SIZE)
+
     on_exit(None, None)
 
 
