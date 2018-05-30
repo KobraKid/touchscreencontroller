@@ -16,6 +16,7 @@ import keyboard
 import pygame
 import signal
 import copy
+import math
 
 __author__ = "Michael Huyler"
 __copyright__ = "Copyright 2018"
@@ -46,6 +47,16 @@ class Button:
     ANALOG = 2
 
 
+class Ind:
+    # Index references
+    B_TYPE = 0
+    X = 1
+    Y = 2
+    WIDTH = 3
+    HEIGHT = 4
+    RAD = 3
+
+
 # screen size constants
 # top-left = 0, 0
 WIDTH = 800
@@ -61,10 +72,10 @@ infile_path = "/dev/input/event2"
     Button coordinates:
 
     Main
-    x: 693 129 - 732 174
-    y: 651 174 - 689 216
-    a: 736 174 - 774 216
-    b: 693 216 - 732 257
+    x: 693 351 - 732 306 }
+    y: 651 306 - 689 264 } only correct coords right now
+    a: 736 306 - 774 264 }
+    b: 693 264 - 732 223 }
 
     D-Pad
     up:    64 232 -  96 264
@@ -85,24 +96,24 @@ infile_path = "/dev/input/event2"
 """
 buttons = {
     # Main
-    "a": (Button.CIRC, 750, 240, 50),
-    "b": (Button.CIRC, 750, 240, 50),
-    "x": (Button.CIRC, 750, 240, 50),
-    "y": (Button.CIRC, 750, 240, 50),
+    "a": (Button.CIRC, 726, 296, 20),
+    # "b": (Button.CIRC, 750, 240, 50),
+    # "x": (Button.CIRC, 750, 240, 50),
+    # "y": (Button.CIRC, 750, 240, 50),
     # D-Pad
-    "up": (Button.RECT, 750, 240, 32),
-    "down": (Button.RECT, 750, 240, 32),
-    "left": (Button.RECT, 750, 240, 32),
-    "right": (Button.RECT, 750, 240, 32),
+    # "up": (Button.RECT, 750, 240, 32),
+    # "down": (Button.RECT, 750, 240, 32),
+    # "left": (Button.RECT, 750, 240, 32),
+    # "right": (Button.RECT, 750, 240, 32),
     # Hotkey
-    "home": (Button.RECT, 750, 240, 50),
+    # "home": (Button.RECT, 750, 240, 50),
     # Menu
-    "start": (Button.RECT, 750, 240, 50),
-    "select": (Button.RECT, 750, 240, 50)
+    # "start": (Button.RECT, 750, 240, 50),
+    # "select": (Button.RECT, 750, 240, 50)
 }
 
 """A dictionary of touch events. Format:
-    id: [x, y, slot, active?]
+    id: [x, y, slot, active?, BTN]
 """
 touches = {}
 
@@ -120,23 +131,55 @@ def translate_press_to_key():
     # A: 'z', B: 'x', X: 'a', Y: 's'
     # L: 'c', R: 'v', ZL: 'd', ZR: 'f'
     # Select: 'left shift', Start: 'enter', Hotkey: 'escape'
-    # temp_touches = {key: value[:] for key, value in touches.items()}
-    # for key in touches:  # Remove inactive touches
-    #     if not touches[key][3]:  # Touch is no longer active
-    #         keyboard.release('z')
-    #         del temp_touches[key]
     # touches = {key: value[:] for key, value in temp_touches.items()}
     # for key in touches:  # Maintian touches
     #     if not keyboard.is_pressed('z'):
     #         keyboard.press('z')
-    print(str(touches))
+    global touches
+
+    # Release inactive touches
+    for key in touches:
+        if not touches[key][3]:
+            if touches[key][4] is not None:
+                keyboard.release(touches[key][4])
+
+    # Purge inactive touches from dictionary
+    temp_touches = {key: value[:] for key, value in touches.items() if touches[key][3]}
+    touches = {key: value[:] for key, value in temp_touches.items()}
+
+    # Activate new touches
+    for key in touches:
+        if touches[key][4] is None:
+            touches[key][4] = within_button(touches[key][0], touches[key][1])
+        if touches[key][4] is not None:
+            if not keyboard.is_pressed(touches[key][4]):
+                keyboard.press(touches[key][4])
+
+    if touches:
+        print("ID: [  X,  Y,  S, ACTV]")
+    for key in touches:
+        print(str(key) + ": " + str(touches[key]), end="")
+    if touches:
+        print("\n=============================================================")
 
 
-def within_button(radius, x, y):
-    return False
+def within_button(x, y):
+    """Given a point on the screen, returns the key corresponding to the button
+    being pressed, or None if it does not fall within a button."""
+    for key in buttons:
+        if buttons[key][Ind.B_TYPE] == Button.CIRC:
+            if math.sqrt(((buttons[key][Ind.X] - x) ** 2) + ((buttons[key][Ind.Y] - y) ** 2)) <= buttons[key][Ind.RAD]:
+                return key
+        elif buttons[key][Ind.B_TYPE] == Button.RECT:
+            if (buttons[key][Ind.X] <= x <= (buttons[key][Ind.X] + buttons[key][Ind.WIDTH])) \
+               and (buttons[key][Ind.Y] <= y <= (buttons[key][Ind.Y] + buttons[key][Ind.HEIGHT])):
+                return key
+    return None
 
 
 def main():
+    global touches
+
     # coordinate variables
     slot = -1
     id = -1
@@ -171,11 +214,13 @@ def main():
                     y = touches[id][1]
                 else:  # This is a new touch, so add it and set it as active
                     print("Create event", id)
-                    touches[id] = [-1, -1, -1, True]
+                    touches[id] = [-1, -1, slot, True, None]
             elif code == Event.ABS_MT_POSITION_X:
                 x = value
+                touches[id][0] = x
             elif code == Event.ABS_MT_POSITION_Y:
                 y = value
+                touches[id][1] = y
 
         else:  # Events with code, type AND value == 0 are "separator" events
             x = -1
