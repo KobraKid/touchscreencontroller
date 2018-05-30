@@ -68,31 +68,6 @@ infile_path = "/dev/input/event2"
 """List of buttons, where
     key = button name
     value = (RECT, x, y, w, h) OR (CIRC, x, y, radius)
-
-    Button coordinates:
-
-    Main
-    x: 693 351 - 732 306 }
-    y: 651 306 - 689 264 } only correct coords right now
-    a: 736 306 - 774 264 }
-    b: 693 264 - 732 223 }
-
-    D-Pad
-    up:    64 232 -  96 264
-    right: 96 264 - 128 296
-    down:  64 296 -  96 328
-    left:  32 264 -  64 296
-
-    Hotkey
-    home: 371 439 - 425 470
-
-    Menu
-    start:  657 318 - 683 344
-    select: 657 370 - 683 397
-
-    Analog
-    r-stick: 25 92 - 138 208
-    l-stick:
 """
 buttons = {
     # Main
@@ -101,15 +76,15 @@ buttons = {
     "x": (Button.CIRC, 683, 254, 20),
     "y": (Button.CIRC, 641, 296, 20),
     # D-Pad
-    # "up": (Button.RECT, 750, 240, 32),
-    # "down": (Button.RECT, 750, 240, 32),
-    # "left": (Button.RECT, 750, 240, 32),
-    # "right": (Button.RECT, 750, 240, 32),
+    # "up arrow": (Button.RECT, ),
+    # "down arrow": (Button.RECT, ),
+    # "left arrow": (Button.RECT, ),
+    # "right arrow": (Button.RECT, ),
     # Hotkey
-    # "home": (Button.RECT, 750, 240, 50),
+    # "esc": (Button.RECT, ),
     # Menu
-    # "start": (Button.RECT, 750, 240, 50),
-    # "select": (Button.RECT, 750, 240, 50)
+    # "enter": (Button.RECT, ),
+    # "left shift": (Button.RECT, )  # Potentially needs 'right shift'
 }
 
 """A dictionary of touch events. Format:
@@ -127,14 +102,7 @@ def on_exit(signum, frame):
 
 
 def translate_press_to_key():
-    """Cycle through touch events, and type the corresponding key."""
-    # A: 'z', B: 'x', X: 'a', Y: 's'
-    # L: 'c', R: 'v', ZL: 'd', ZR: 'f'
-    # Select: 'left shift', Start: 'enter', Hotkey: 'escape'
-    # touches = {key: value[:] for key, value in temp_touches.items()}
-    # for key in touches:  # Maintian touches
-    #     if not keyboard.is_pressed('z'):
-    #         keyboard.press('z')
+    """Cycle through touch events, and press and release the corresponding keys."""
     global touches
 
     # Release inactive touches
@@ -160,7 +128,7 @@ def translate_press_to_key():
     for key in touches:
         print(str(key) + ": " + str(touches[key]), end="")
     if touches:
-        print("\n=============================================================")
+        print("\n________________________________________________________________________________")
 
 
 def within_button(x, y):
@@ -174,6 +142,9 @@ def within_button(x, y):
             if (buttons[key][Ind.X] <= x <= (buttons[key][Ind.X] + buttons[key][Ind.WIDTH])) \
                and (buttons[key][Ind.Y] <= y <= (buttons[key][Ind.Y] + buttons[key][Ind.HEIGHT])):
                 return key
+        elif buttons[key][Ind.B_TYPE] == Button.ANALOG:
+            # TODO This will be for the analog sticks
+            pass
     return None
 
 
