@@ -59,8 +59,8 @@ class Ind:
 
 # screen size constants
 # top-left = 0, 0
-WIDTH = 800
-HEIGHT = 480
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 480
 
 # infile_path = "input"
 infile_path = "/dev/input/event2"
@@ -97,9 +97,9 @@ infile_path = "/dev/input/event2"
 buttons = {
     # Main
     "a": (Button.CIRC, 726, 296, 20),
-    # "b": (Button.CIRC, 750, 240, 50),
-    # "x": (Button.CIRC, 750, 240, 50),
-    # "y": (Button.CIRC, 750, 240, 50),
+    "b": (Button.CIRC, 683, 341, 20),
+    "x": (Button.CIRC, 683, 254, 20),
+    "y": (Button.CIRC, 641, 296, 20),
     # D-Pad
     # "up": (Button.RECT, 750, 240, 32),
     # "down": (Button.RECT, 750, 240, 32),
@@ -178,15 +178,35 @@ def within_button(x, y):
 
 
 def main():
-    global touches
+    # Set up Pygame for testing button locations
+    global SCREEN_WIDTH, SCREEN_HEIGHT
+    pygame.init()
+    myfont = pygame.font.SysFont("monospace", 40)
+    pygame.mouse.set_visible(False)
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen.fill((0, 0, 127))
+    pygame.draw.circle(screen, (0, 255, 0), (buttons["a"][Ind.X], buttons["a"][Ind.Y]), 20)
+    label = myfont.render("A", 1, (255, 0, 255))
+    screen.blit(label, (buttons["a"][Ind.X] - 12, buttons["a"][Ind.Y] - 20))
+    pygame.draw.circle(screen, (255, 0, 0), (buttons["b"][Ind.X], buttons["b"][Ind.Y]), 20)
+    label = myfont.render("B", 1, (0, 255, 255))
+    screen.blit(label, (buttons["b"][Ind.X] - 12, buttons["b"][Ind.Y] - 20))
+    pygame.draw.circle(screen, (0, 0, 255), (buttons["x"][Ind.X], buttons["x"][Ind.Y]), 20)
+    label = myfont.render("X", 1, (255, 255, 0))
+    screen.blit(label, (buttons["x"][Ind.X] - 12, buttons["x"][Ind.Y] - 20))
+    pygame.draw.circle(screen, (255, 255, 0), (buttons["y"][Ind.X], buttons["y"][Ind.Y]), 20)
+    label = myfont.render("Y", 1, (0, 0, 255))
+    screen.blit(label, (buttons["y"][Ind.X] - 12, buttons["y"][Ind.Y] - 20))
+    pygame.display.update()
 
-    # coordinate variables
+    # Touch event variables
+    global touches
     slot = -1
     id = -1
     x = -1
     y = -1
 
-    # open file in binary mode
+    # Open file in binary mode
     in_file = open(infile_path, "rb")
     event = in_file.read(Event.EVENT_SIZE)
 
