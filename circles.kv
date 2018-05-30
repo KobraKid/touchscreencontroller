@@ -1,0 +1,87 @@
+#:kivy 1.0.9
+
+<CirclesGame>:
+    canvas:
+        # A
+        Color:
+            rgb: (0, 1, 0)
+        Ellipse:
+            pos: 700, 270
+            size: 50, 50
+        # B
+        Color:
+            rgb: (1, 0, 0)
+        Ellipse:
+            pos: 750, 320
+            size: 50, 50
+        # X
+        Color:
+            rgb: (0, 0, 1)
+        Ellipse:
+            pos: 650, 320
+            size: 50, 50
+        # Y
+        Color:
+            rgb: (1, 1, 0)
+        Ellipse:
+            pos: 700, 370
+            size: 50, 50
+        # R-Stick
+        Color:
+            rgb: (1, 1, 1)
+        Line:
+            ellipse: 690, 155, 80, 80
+        # Down
+        Color:
+            rgb: (0, 1, 0)
+        Ellipse:
+            pos: 50, 110
+            size: 50, 50
+        # Right
+        Color:
+            rgb: (1, 0, 0)
+        Ellipse:
+            pos: 0, 160
+            size: 50, 50
+        # Left
+        Color:
+            rgb: (0, 0, 1)
+        Ellipse:
+            pos: 100, 160
+            size: 50, 50
+        # Up
+        Color:
+            rgb: (1, 1, 0)
+        Ellipse:
+            pos: 50, 210
+            size: 50, 50
+        # L-Stick
+        Color:
+            rgb: (1, 1, 1)
+        Line:
+            ellipse: 40, 325, 80, 80
+
+    Label:
+        font_size: 25
+        pos: 700-25, 270-25
+        text: "A"
+    Label:
+        font_size: 25
+        pos: 750-25, 320-25
+        text: "B"
+    Label:
+        font_size: 25
+        pos: 650-25, 320-25
+        text: "X"
+    Label:
+        font_size: 25
+        pos: 700-25, 370-25
+        text: "Y"
+    Label:
+        font_size: 40
+        pos: 690-10, 155-10
+        text: "R"
+    Label:
+        font_size: 40
+        pos: 40-10, 325-10
+        text: "L"
